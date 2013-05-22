@@ -101,6 +101,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 	private OnSubtitleUpdateListener mOnSubtitleUpdateListener;
 	private OnInfoListener mOnInfoListener;
 	private OnBufferingUpdateListener mOnBufferingUpdateListener;
+	private OnStateListener mOnStateListener;
 	private int mCurrentBufferPercentage;
 	private long mSeekWhenPrepared;
 	private boolean mCanPause = true;
@@ -369,9 +370,13 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 			if (!pausedWhileBuffering && percent < PAUSE_BUFFER) {
 				pausedWhileBuffering = true;
 				mMediaPlayer.pause();
+				if (mOnStateListener != null)
+					mOnStateListener.onPausedWhileBuffering();
 			} else if (pausedWhileBuffering && percent > START_BUFFER) {
 				pausedWhileBuffering = false;
 				mMediaPlayer.start();
+				if (mOnStateListener != null)
+					mOnStateListener.onResumedWhileBuffering();
 			}
 		}
 	};
@@ -437,6 +442,10 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 
 	public void setOnInfoListener(OnInfoListener l) {
 		mOnInfoListener = l;
+	}
+
+	public void setOnStateListener(OnStateListener l) {
+		mOnStateListener = l;
 	}
 
 	SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
