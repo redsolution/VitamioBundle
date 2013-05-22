@@ -73,6 +73,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 	private static final int STATE_SUSPEND = 6;
 	private static final int STATE_RESUME = 7;
 	private static final int STATE_SUSPEND_UNSUPPORTED = 8;
+	private static final int START_BUFFER = 40;
+	private static final int PAUSE_BUFFER = 10;
 
 	private int mCurrentState = STATE_IDLE;
 	private int mTargetState = STATE_IDLE;
@@ -104,6 +106,7 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 	private boolean mCanPause = true;
 	private boolean mCanSeekBack = true;
 	private boolean mCanSeekForward = true;
+	private boolean pausedWhileBuffering = false;
 	private Context mContext;
 
 	public VideoView(Context context) {
@@ -361,6 +364,15 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 			mCurrentBufferPercentage = percent;
 			if (mOnBufferingUpdateListener != null)
 				mOnBufferingUpdateListener.onBufferingUpdate(mp, percent);
+			if (mCurrentState != STATE_PLAYING)
+				return;
+			if (!pausedWhileBuffering && percent < PAUSE_BUFFER) {
+				pausedWhileBuffering = true;
+				mMediaPlayer.pause();
+			} else if (pausedWhileBuffering && percent > START_BUFFER) {
+				pausedWhileBuffering = false;
+				mMediaPlayer.start();
+			}
 		}
 	};
 
@@ -368,15 +380,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 		@Override
 		public boolean onInfo(MediaPlayer mp, int what, int extra) {
 			Log.d("onInfo: (%d, %d)", what, extra);
-			if (mOnInfoListener != null
-					&& mOnInfoListener.onInfo(mp, what, extra)) {
-			} else if (mMediaPlayer != null) {
-				if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START)
-					mMediaPlayer.pause();
-				else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END)
-					mMediaPlayer.start();
-			}
-
+			if (mOnInfoListener != null)
+				mOnInfoListener.onInfo(mp, what, extra);
 			return true;
 		}
 	};
