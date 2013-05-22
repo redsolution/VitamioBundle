@@ -368,8 +368,8 @@ public class VideoView extends SurfaceView implements MediaController.MediaPlaye
 		@Override
 		public boolean onInfo(MediaPlayer mp, int what, int extra) {
 			Log.d("onInfo: (%d, %d)", what, extra);
-			if (mOnInfoListener != null) {
-				mOnInfoListener.onInfo(mp, what, extra);
+			if (mOnInfoListener != null
+					&& mOnInfoListener.onInfo(mp, what, extra)) {
 			} else if (mMediaPlayer != null) {
 				if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START)
 					mMediaPlayer.pause();
